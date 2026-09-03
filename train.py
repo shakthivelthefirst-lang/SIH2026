@@ -1,5 +1,12 @@
 import os
 import sys
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 import argparse
 import yaml
 import torch
@@ -132,7 +139,7 @@ def train_single_model(model_type: str, config: dict, train_loader, val_loader, 
 
         print(f"[*] Epoch {epoch}: Train Loss = {epoch_train_loss:.4f} | Val Loss = {val_metrics['val_loss']:.4f} | "
               f"Val SI-SNR = {val_metrics['val_si_snr']:.2f} dB | Val STOI = {val_metrics['val_stoi']:.3f} | "
-              f"Val ΔSNR = {val_metrics['val_delta_snr']:.2f} dB")
+              f"Val Delta_SNR = {val_metrics['val_delta_snr']:.2f} dB")
 
         # Step scheduler on validation SI-SNR
         scheduler.step(val_metrics["val_si_snr"])
