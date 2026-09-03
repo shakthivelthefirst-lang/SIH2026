@@ -1,0 +1,46 @@
+# Audio Configuration
+sample_rate: 16000
+n_fft: 512
+hop_length: 128
+win_length: 512
+window_type: "hann"
+
+# Dataset & Mixing Configuration
+data_dir: "../"  # Path to MAD dataset root (containing training/ and test/ or CSVs)
+train_csv: "../training.csv"
+test_csv: "../test.csv"
+segment_seconds: 3.0
+val_split: 0.2
+seed: 42
+
+snr_levels:
+  - -10
+  - -5
+  - 0
+  - 5
+  - 10
+  - 15
+
+# Training Hyperparameters
+batch_size: 8
+epochs: 50
+learning_rate: 0.001
+weight_decay: 1.0e-5
+lstm_layers: 2
+hidden_size: 128
+
+# Loss Weights
+si_snr_weight: 1.0
+spectral_weight: 0.5
+complex_weight: 0.5
+
+# Training Controls
+mixed_precision: true
+gradient_clip: 5.0
+patience: 10
+num_workers: 0  # 0 recommended for Windows multi-process stability
+
+# Paths
+checkpoint_dir: "checkpoints"
+output_dir: "outputs"
+results_dir: "results"
