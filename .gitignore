@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Large audio dataset junctions & raw files
+data/clean_command/
+data/gun/
+data/bomb/
+data/helicopter/
+data/raw/
+data/mixed_test/
+processed_data/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
