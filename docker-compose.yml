@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  causal-dpcrn-server:
+    build: .
+    container_name: causal_dpcrn_working_model
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped
+    volumes:
+      - ./outputs:/app/outputs
+      - ./checkpoints:/app/checkpoints
