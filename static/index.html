@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Causal DPCRN — Real-Time Defence Speech Enhancement</title>
+  <meta name="description" content="Streaming Causal Dual-Path Complex Recurrent Network for Adaptive Noise Cancellation on Edge Hardware (Jetson Orin).">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="radar-dot"></span>
+        <span class="logo-title">CAUSAL DPCRN</span>
+      </div>
+      <span class="tag-badge">EDGE AI ANC</span>
+      <span class="tag-badge target-tag">NVIDIA JETSON ORIN</span>
+    </div>
+    <div class="header-right">
+      <div class="telemetry-pill">
+        <span class="tele-label">ALGORITHMIC LATENCY</span>
+        <span class="tele-val text-cyan">≤ 16.0 ms</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="tele-label">FRAME HOP</span>
+        <span class="tele-val">8.0 ms</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="tele-label">RTF FACTOR</span>
+        <span class="tele-val text-emerald">0.28x (3.5x Real-Time)</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="tele-label">PARAMETERS</span>
+        <span class="tele-val">736,967</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" id="tab-btn-sim" onclick="switchTab('sim')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        1. Defence Noise Simulator
+      </button>
+      <button class="tab-btn" id="tab-btn-file" onclick="switchTab('file')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        2. Audio File Denoiser
+      </button>
+      <button class="tab-btn" id="tab-btn-mic" onclick="switchTab('mic')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        3. Live Mic Streaming
+      </button>
+      <button class="tab-btn" id="tab-btn-arch" onclick="switchTab('arch')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        4. Architecture & Metrics
+      </button>
+    </nav>
+
+    <!-- Tab 1: Defence Noise Simulator -->
+    <section class="tab-pane active" id="pane-sim">
+      <div class="grid-2col">
+        <!-- Control Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Tactical Defence Acoustic Simulation</h3>
+            <span class="badge-pill">DYNAMIC MIXING</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SELECT COMBAT NOISE PROFILE</label>
+            <div class="noise-selector-grid">
+              <label class="noise-opt active" onclick="selectNoiseType('rotor_blades', this)">
+                <input type="radio" name="noise_type" value="rotor_blades" checked>
+                <div class="noise-icon">🚁</div>
+                <div class="noise-text">
+                  <strong>Rotor Blades</strong>
+                  <small>Helicopter chop modulation</small>
+                </div>
+              </label>
+              <label class="noise-opt" onclick="selectNoiseType('tank_rumble', this)">
+                <input type="radio" name="noise_type" value="tank_rumble">
+                <div class="noise-icon">🛡️</div>
+                <div class="noise-text">
+                  <strong>Tank Diesel & Treads</strong>
+                  <small>Heavy engine sub-bass harmonics</small>
+                </div>
+              </label>
+              <label class="noise-opt" onclick="selectNoiseType('gunshots', this)">
+                <input type="radio" name="noise_type" value="gunshots">
+                <div class="noise-icon">💥</div>
+                <div class="noise-text">
+                  <strong>Gunfire & Impulses</strong>
+                  <small>High-energy transient bursts</small>
+                </div>
+              </label>
+              <label class="noise-opt" onclick="selectNoiseType('artillery', this)">
+                <input type="radio" name="noise_type" value="artillery">
+                <div class="noise-icon">💣</div>
+                <div class="noise-text">
+                  <strong>Heavy Artillery</strong>
+                  <small>Blast shockwaves & resonance</small>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-header">
+              <label class="form-label">SIGNAL-TO-NOISE RATIO (SNR)</label>
+              <span class="slider-badge" id="snr-display">0.0 dB</span>
+            </div>
+            <input type="range" class="custom-range" id="snr-slider" min="-10" max="15" step="1" value="0" oninput="updateSnrLabel(this.value)">
+            <div class="slider-ticks">
+              <span>-10 dB (Severe)</span>
+              <span>0 dB (Combat)</span>
+              <span>+15 dB (Mild)</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-run-sim" onclick="runSimulation()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Synthesize & Denoise Stream
+          </button>
+        </div>
+
+        <!-- Real-Time Metrics & Telemetry Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Inference Telemetry & Metrics</h3>
+            <span class="badge-pill pulse-emerald">ACTIVE MODEL</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="m-label">INPUT NOISY SI-SNR</span>
+              <span class="m-val text-amber" id="m-input-sisnr">-- dB</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">ENHANCED SI-SNR</span>
+              <span class="m-val text-emerald" id="m-enh-sisnr">-- dB</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">Δ SI-SNR IMPROVEMENT</span>
+              <span class="m-val text-cyan" id="m-delta-sisnr">-- dB</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">COMPUTE LATENCY</span>
+              <span class="m-val text-emerald" id="m-latency">-- ms</span>
+            </div>
+          </div>
+
+          <!-- Audio Comparison Player -->
+          <div class="player-container">
+            <div class="player-row">
+              <div class="player-meta">
+                <span class="player-title">1. CLEAN TARGET SPEECH</span>
+                <span class="player-badge">REFERENCE</span>
+              </div>
+              <audio id="audio-clean" controls class="custom-audio"></audio>
+            </div>
+
+            <div class="player-row">
+              <div class="player-meta">
+                <span class="player-title">2. COMBAT NOISY INPUT</span>
+                <span class="player-badge badge-amber">CORRUPTED</span>
+              </div>
+              <audio id="audio-noisy" controls class="custom-audio"></audio>
+            </div>
+
+            <div class="player-row">
+              <div class="player-meta">
+                <span class="player-title">3. DPCRN ENHANCED OUTPUT</span>
+                <span class="player-badge badge-cyan">STREAMING ENHANCED</span>
+              </div>
+              <audio id="audio-enhanced" controls class="custom-audio"></audio>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Oscilloscope & Spectrogram Canvas -->
+      <div class="glass-card visualizer-card">
+        <div class="card-header">
+          <h3>Spectral Visualizer & Oscilloscope</h3>
+          <div class="vis-toggles">
+            <button class="btn-toggle active" id="btn-vis-noisy" onclick="setVisualizerSource('noisy')">Noisy Input</button>
+            <button class="btn-toggle" id="btn-vis-enh" onclick="setVisualizerSource('enhanced')">Enhanced Output</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="waveform-canvas" width="1000" height="200"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Audio File Denoiser -->
+    <section class="tab-pane" id="pane-file">
+      <div class="grid-2col">
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Upload Audio File (.wav, .flac, .mp3)</h3>
+            <span class="badge-pill">BATCH / STREAMING</span>
+          </div>
+
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept=".wav,.flac,.mp3,.ogg" style="display:none" onchange="handleFileSelect(this.files[0])">
+            <div class="drop-icon">📁</div>
+            <p class="drop-text">Drag & drop your noisy audio file here, or <span class="text-cyan">browse</span></p>
+            <small class="drop-sub">Resampled automatically to 16 kHz Mono</small>
+            <div id="file-info" class="file-info-badge" style="display:none"></div>
+          </div>
+
+          <div class="form-group" style="margin-top: 20px;">
+            <label class="form-label">PROCESSING ENGINE</label>
+            <div class="segmented-control">
+              <button class="seg-btn active" id="seg-stream" onclick="setEngineMode('streaming')">Streaming ONNX (8 ms Frame Step)</button>
+              <button class="seg-btn" id="seg-batch" onclick="setEngineMode('batch')">PyTorch Offline Forward</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-denoise-file" onclick="denoiseUploadedFile()" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Execute Noise Cancellation
+          </button>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Enhanced Output Comparison</h3>
+            <span class="badge-pill pulse-emerald">PROCESSED</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="m-label">PROCESSING TIME</span>
+              <span class="m-val text-cyan" id="file-proc-time">-- s</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">REAL-TIME FACTOR</span>
+              <span class="m-val text-emerald" id="file-rtf">-- x</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">FRAMES PROCESSED</span>
+              <span class="m-val" id="file-frames">--</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">AVG LATENCY / HOP</span>
+              <span class="m-val text-emerald" id="file-lat">-- ms</span>
+            </div>
+          </div>
+
+          <div class="player-container">
+            <div class="player-row">
+              <div class="player-meta">
+                <span class="player-title">ORIGINAL UPLOADED FILE</span>
+                <span class="player-badge badge-amber">RAW</span>
+              </div>
+              <audio id="audio-file-noisy" controls class="custom-audio"></audio>
+            </div>
+
+            <div class="player-row">
+              <div class="player-meta">
+                <span class="player-title">CAUSAL DPCRN ENHANCED</span>
+                <span class="player-badge badge-cyan">DENOISED</span>
+              </div>
+              <audio id="audio-file-enhanced" controls class="custom-audio"></audio>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Live Microphone Streaming -->
+    <section class="tab-pane" id="pane-mic">
+      <div class="grid-2col">
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Real-Time Live Microphone ANC Stream</h3>
+            <span class="badge-pill">WEBSOCKET 8 MS HOPS</span>
+          </div>
+
+          <div class="mic-status-box">
+            <div class="mic-visual-indicator" id="mic-indicator">
+              <div class="mic-pulse-ring"></div>
+              <div class="mic-core-icon">🎙️</div>
+            </div>
+            <div class="mic-text">
+              <h4 id="mic-status-title">Microphone Idle</h4>
+              <p id="mic-status-desc">Click Start below to stream live audio directly into the Causal DPCRN ONNX engine in real-time.</p>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-mic-start" onclick="startMicStreaming()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+              Start Live ANC Streaming
+            </button>
+            <button class="btn btn-danger" id="btn-mic-stop" onclick="stopMicStreaming()" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
+              Stop Stream
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Live Streaming Telemetry</h3>
+            <span class="badge-pill text-cyan">EDGE RUNTIME</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="m-label">BUFFER / HOP SIZE</span>
+              <span class="m-val text-cyan">128 samples (8.0 ms)</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">ALGORITHMIC LATENCY</span>
+              <span class="m-val text-emerald">16.0 ms</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">FRAMES STREAMED</span>
+              <span class="m-val" id="mic-frames-count">0</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">STREAM STATUS</span>
+              <span class="m-val text-amber" id="mic-conn-status">Disconnected</span>
+            </div>
+          </div>
+
+          <div class="canvas-wrapper" style="margin-top: 20px;">
+            <canvas id="live-mic-canvas" width="600" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Architecture Specifications -->
+    <section class="tab-pane" id="pane-arch">
+      <div class="grid-2col">
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Causal DPCRN Specifications</h3>
+            <span class="badge-pill">JETSON ORIN DEPLOYMENT</span>
+          </div>
+          <table class="spec-table">
+            <tr><td>Architecture</td><td><strong>Causal Dual-Path Complex Recurrent Network (DPCRN)</strong></td></tr>
+            <tr><td>Total Parameters</td><td><strong>736,967</strong> (2.85 MB ONNX)</td></tr>
+            <tr><td>Audio Sampling Rate</td><td><strong>16,000 Hz (Mono)</strong></td></tr>
+            <tr><td>STFT Window / Hop</td><td><strong>512 samples (32 ms) / 128 samples (8 ms)</strong></td></tr>
+            <tr><td>Complex Spectrogram Shape</td><td><strong>[B, 2, F=257, T]</strong> (Real and Imaginary channels)</td></tr>
+            <tr><td>Encoder Architecture</td><td><strong>3x CausalConv2D (2->32->64->128) + ChannelwiseLayerNorm + PReLU</strong></td></tr>
+            <tr><td>Dual-Path Core</td><td><strong>2x Blocks (Intra-Freq BiLSTM 128 + Inter-Time Causal UniLSTM 128)</strong></td></tr>
+            <tr><td>Decoder Architecture</td><td><strong>3x CausalConvTranspose2D (128->64->32->2) + Tanh</strong></td></tr>
+            <tr><td>Mask Formulation</td><td><strong>Complex Ratio Mask (cRM) $M \in [-1, 1]$</strong></td></tr>
+            <tr><td>Algorithmic Latency</td><td><strong>16.0 ms</strong> (Zero future look-ahead)</td></tr>
+          </table>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>Multi-Domain Objective Function</h3>
+            <span class="badge-pill">PERCEPTUAL LOSS</span>
+          </div>
+          <div class="formula-box">
+            $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{SI-SNR}} + 10.0 \cdot \mathcal{L}_{\text{Mag}} + 5.0 \cdot \mathcal{L}_{\text{cSTFT}}$$
+          </div>
+          <p class="formula-desc">
+            1. <strong>$\mathcal{L}_{\text{SI-SNR}}$</strong>: Scale-Invariant Signal-to-Noise Ratio (negative SI-SNR in time domain).<br>
+            2. <strong>$\mathcal{L}_{\text{Mag}}$</strong>: $\mathcal{L}_1$ loss on power-law compressed magnitudes ($|S|^{0.3}$).<br>
+            3. <strong>$\mathcal{L}_{\text{cSTFT}}$</strong>: $\mathcal{L}_1$ loss on compressed complex STFT components ($|S|^{-0.7} S$).
+          </p>
+
+          <div class="card-header" style="margin-top: 25px;">
+            <h3>Target Edge Performance</h3>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="m-label">TARGET PESQ (WB)</span>
+              <span class="m-val text-cyan">&gt; 2.50</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">TARGET STOI</span>
+              <span class="m-val text-cyan">&gt; 0.85</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">TARGET Δ SI-SNR</span>
+              <span class="m-val text-emerald">&gt; +12.0 dB</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-label">LATENCY BUDGET</span>
+              <span class="m-val text-emerald">≤ 16.0 ms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
